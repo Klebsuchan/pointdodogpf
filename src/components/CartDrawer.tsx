@@ -17,6 +17,8 @@ export function CartDrawer({ isOpen, onClose, cartItems, onUpdateQuantity, setti
   const [neighborhood, setNeighborhood] = useState('');
   const [reference, setReference] = useState('');
   const [payment, setPayment] = useState('Pix');
+  const [needsChange, setNeedsChange] = useState(false);
+  const [changeFor, setChangeFor] = useState('');
 
   const total = cartItems.reduce((acc, item) => acc + (item.product.price * item.quantity), 0);
 
@@ -25,7 +27,7 @@ export function CartDrawer({ isOpen, onClose, cartItems, onUpdateQuantity, setti
     
     if (cartItems.length === 0) return;
 
-    let message = `*Novo Pedido - Point do Dog PF* 🌭\n\n`;
+    let message = `*Novo Pedido - Point Dog* 🌭\n\n`;
     message += `*Cliente:* ${name}\n`;
     message += `*Telefone:* ${phone}\n\n`;
     message += `*Endereço de Entrega:*\n`;
@@ -34,8 +36,11 @@ export function CartDrawer({ isOpen, onClose, cartItems, onUpdateQuantity, setti
     if (reference) {
       message += `*Ponto de Referência:* ${reference}\n`;
     }
-    message += `\n*Pagamento:* ${payment}\n\n`;
-    message += `*Pedido:*\n`;
+    message += `\n*Pagamento:* ${payment}\n`;
+    if (payment === 'Dinheiro' && needsChange && changeFor) {
+      message += `*Troco para:* ${changeFor}\n`;
+    }
+    message += `\n*Pedido:*\n`;
     
     cartItems.forEach(item => {
       message += `${item.quantity}x ${item.product.name} - R$ ${(item.product.price * item.quantity).toFixed(2).replace('.', ',')}\n`;
@@ -187,6 +192,53 @@ export function CartDrawer({ isOpen, onClose, cartItems, onUpdateQuantity, setti
                       <option value="Dinheiro">Dinheiro</option>
                     </select>
                   </div>
+
+                  {payment === 'Dinheiro' && (
+                    <div className="mt-4 space-y-4 border border-black/10 rounded-xl p-4 bg-white/50">
+                      <div>
+                        <label className="block text-[10px] font-black uppercase tracking-widest text-black/80 mb-2">Precisa de troco?</label>
+                        <div className="flex gap-6">
+                          <label className="flex items-center gap-2 cursor-pointer">
+                            <input 
+                              type="radio" 
+                              name="needsChange" 
+                              checked={needsChange === true}
+                              onChange={() => setNeedsChange(true)}
+                              className="text-[#DC2626] focus:ring-[#DC2626] w-4 h-4 cursor-pointer"
+                            />
+                            <span className="text-sm font-bold text-black/80">Sim</span>
+                          </label>
+                          <label className="flex items-center gap-2 cursor-pointer">
+                            <input 
+                              type="radio" 
+                              name="needsChange" 
+                              checked={needsChange === false}
+                              onChange={() => {
+                                setNeedsChange(false);
+                                setChangeFor('');
+                              }}
+                              className="text-[#DC2626] focus:ring-[#DC2626] w-4 h-4 cursor-pointer"
+                            />
+                            <span className="text-sm font-bold text-black/80">Não</span>
+                          </label>
+                        </div>
+                      </div>
+
+                      {needsChange && (
+                        <div className="pt-2">
+                          <label className="block text-[10px] font-black uppercase mb-1 tracking-widest text-black/80">Para quanto?</label>
+                          <input 
+                            type="text" 
+                            value={changeFor}
+                            onChange={(e) => setChangeFor(e.target.value)}
+                            className="w-full bg-white border border-black/10 rounded-xl px-4 py-3.5 focus:outline-none focus:ring-4 focus:ring-black/10 placeholder-black/40 text-black font-bold transition-all shadow-sm"
+                            placeholder="Ex: 50,00"
+                            required={needsChange}
+                          />
+                        </div>
+                      )}
+                    </div>
+                  )}
                 </div>
 
                 <div className="mt-8 pt-6 border-t border-black/10">

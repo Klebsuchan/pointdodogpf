@@ -24,7 +24,7 @@ export function Header({ cartItemCount, onOpenCart, onNavigate, searchQuery, onS
             <div className="h-12 w-12 md:h-16 md:w-16 shrink-0 rounded-full overflow-hidden border-2 border-[#FFD700] shadow-[0_0_10px_rgba(255,215,0,0.5)]">
               <img 
                 src={logoUrl} 
-                alt="Point do Dog PF Logo" 
+                alt="Point Dog Logo" 
                 className="h-full w-full object-cover transition-transform group-hover:scale-110"
               />
             </div>

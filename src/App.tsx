@@ -169,7 +169,7 @@ export default function App() {
             {/* Credits and Copyrights */}
             <div className="flex flex-col md:flex-row items-center justify-between w-full max-w-4xl gap-4 text-center md:text-left text-xs text-zinc-500">
               <div>
-                <p>© {new Date().getFullYear()} Point do Dog PF Delivery. Todos os direitos reservados.</p>
+                <p>© {new Date().getFullYear()} Point Dog Delivery. Todos os direitos reservados.</p>
                 <p className="mt-1 text-zinc-600">
                   Desenvolvedor{' '}
                   <a 

@@ -1,6 +1,6 @@
-# 🌭 Point do Dog PF Delivery 🚀
+# 🌭 Point Dog Delivery 🚀
 
-> **Point do Dog PF Delivery** é uma plataforma moderna e responsiva de catálogo online e delivery, criada especialmente para o **Point do Dog PF**, localizado em Passo Fundo, Rio Grande do Sul (RS). O projeto conecta um cardápio interativo e dinâmico diretamente ao WhatsApp do estabelecimento, permitindo que os clientes façam pedidos de forma simples e rápida, enquanto os administradores gerenciam produtos e configurações em tempo real através de um painel de controle integrado com o **Google Firebase**.
+> **Point Dog Delivery** é uma plataforma moderna e responsiva de catálogo online e delivery, criada especialmente para o **Point Dog**, localizado em Passo Fundo, Rio Grande do Sul (RS). O projeto conecta um cardápio interativo e dinâmico diretamente ao WhatsApp do estabelecimento, permitindo que os clientes façam pedidos de forma simples e rápida, enquanto os administradores gerenciam produtos e configurações em tempo real através de um painel de controle integrado com o **Google Firebase**.
 
 ---
 
@@ -126,4 +126,4 @@ O banco de dados é mantido no **Cloud Firestore**. As regras vigentes no arquiv
 
 ---
 
-> Desenvolvido com carinho para o **Point do Dog PF** - Passo Fundo, RS 🌭🍔🚀
+> Desenvolvido com carinho para o **Point Dog** - Passo Fundo, RS 🌭🍔🚀

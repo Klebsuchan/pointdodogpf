@@ -20,7 +20,7 @@ export function PolicyModal({ type, onClose }: PolicyModalProps) {
           body: (
             <div className="space-y-4 text-zinc-300 text-sm md:text-base leading-relaxed">
               <p>
-                Nós da <strong>Point do Dog PF</strong> valorizamos a transparência e a privacidade dos nossos clientes. Esta política explica de forma clara como e por que utilizamos cookies em nossa plataforma.
+                Nós da <strong>Point Dog</strong> valorizamos a transparência e a privacidade dos nossos clientes. Esta política explica de forma clara como e por que utilizamos cookies em nossa plataforma.
               </p>
               <div className="space-y-2">
                 <h4 className="text-white font-semibold text-base mt-4">1. O que são Cookies?</h4>
@@ -62,7 +62,7 @@ export function PolicyModal({ type, onClose }: PolicyModalProps) {
           body: (
             <div className="space-y-4 text-zinc-300 text-sm md:text-base leading-relaxed">
               <p>
-                A sua privacidade é uma prioridade na <strong>Point do Dog PF</strong>. Esta Política de Privacidade descreve como tratamos as suas informações ao utilizar o nosso sistema de delivery online em Passo Fundo.
+                A sua privacidade é uma prioridade na <strong>Point Dog</strong>. Esta Política de Privacidade descreve como tratamos as suas informações ao utilizar o nosso sistema de delivery online em Passo Fundo.
               </p>
               <div className="space-y-2">
                 <h4 className="text-white font-semibold text-base mt-4">1. Coleta de Informações Mínimas</h4>
