@@ -1,6 +1,6 @@
 {
-  "name": "Point do dog PF Delivery",
-  "description": "Catálogo online e delivery para a point do dog, com integração direto ao WhatsApp.",
+  "name": "Point Dog Delivery",
+  "description": "Catálogo online e delivery para Point Dog, com integração direto ao WhatsApp.",
   "requestFramePermissions": [],
   "majorCapabilities": [
     "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"

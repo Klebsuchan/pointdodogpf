@@ -30,7 +30,7 @@ export function Header({ cartItemCount, onOpenCart, onNavigate, searchQuery, onS
             </div>
             <div className="flex flex-col justify-center">
               <div className="text-2xl md:text-3xl font-black italic tracking-tighter uppercase text-white group-hover:text-[#FFD700] transition-colors leading-none">
-                POINT DO <span className="text-[#FFD700] group-hover:text-white transition-colors">DOG</span>
+                POINT <span className="text-[#FFD700] group-hover:text-white transition-colors">DOG</span>
               </div>
               <div className="text-[#D32F2F] font-bold text-xs md:text-sm tracking-widest uppercase mt-0.5">
                 O melhor de Passo Fundo

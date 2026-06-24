@@ -132,7 +132,7 @@ export default function App() {
             {/* Branding & Subtitle */}
             <div className="text-center mb-8">
               <p className="text-zinc-400 font-extrabold text-lg tracking-widest uppercase mb-2">
-                Point do <span className="text-[#DC2626]">Dog PF</span>
+                Point <span className="text-[#DC2626]">Dog</span>
               </p>
               <p className="text-zinc-500 text-xs md:text-sm max-w-sm mx-auto">
                 O melhor cachorro-quente de Passo Fundo. Feito com ingredientes selecionados.
