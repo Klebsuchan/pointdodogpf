@@ -17,6 +17,8 @@ export function CartDrawer({ isOpen, onClose, cartItems, onUpdateQuantity, setti
   const [neighborhood, setNeighborhood] = useState('');
   const [reference, setReference] = useState('');
   const [payment, setPayment] = useState('Pix');
+  const [deliveryMethod, setDeliveryMethod] = useState('Delivery');
+  const [notes, setNotes] = useState('');
   const [needsChange, setNeedsChange] = useState(false);
   const [changeFor, setChangeFor] = useState('');
 
@@ -30,12 +32,17 @@ export function CartDrawer({ isOpen, onClose, cartItems, onUpdateQuantity, setti
     let message = `*Novo Pedido - Point Dog* 🌭\n\n`;
     message += `*Cliente:* ${name}\n`;
     message += `*Telefone:* ${phone}\n\n`;
-    message += `*Endereço de Entrega:*\n`;
-    message += `*Rua/Número:* ${street}\n`;
-    message += `*Bairro:* ${neighborhood}\n`;
-    if (reference) {
-      message += `*Ponto de Referência:* ${reference}\n`;
+    message += `*Método de Entrega:* ${deliveryMethod}\n`;
+    
+    if (deliveryMethod === 'Delivery') {
+      message += `\n*Endereço de Entrega:*\n`;
+      message += `*Rua/Número:* ${street}\n`;
+      message += `*Bairro:* ${neighborhood}\n`;
+      if (reference) {
+        message += `*Ponto de Referência:* ${reference}\n`;
+      }
     }
+    
     message += `\n*Pagamento:* ${payment}\n`;
     if (payment === 'Dinheiro' && needsChange && changeFor) {
       message += `*Troco para:* ${changeFor}\n`;
@@ -45,6 +52,10 @@ export function CartDrawer({ isOpen, onClose, cartItems, onUpdateQuantity, setti
     cartItems.forEach(item => {
       message += `${item.quantity}x ${item.product.name} - R$ ${(item.product.price * item.quantity).toFixed(2).replace('.', ',')}\n`;
     });
+
+    if (notes) {
+      message += `\n*Observações (retirar itens, etc):* ${notes}\n`;
+    }
 
     message += `\n*Total:* R$ ${total.toFixed(2).replace('.', ',')} + taxa de entrega\n`;
     message += `_(A taxa de entrega será combinada com o entregador)_`;
@@ -144,39 +155,55 @@ export function CartDrawer({ isOpen, onClose, cartItems, onUpdateQuantity, setti
 
                   <div className="grid grid-cols-2 gap-4">
                     <div className="col-span-2">
-                      <label className="block text-[10px] font-black uppercase mb-1 tracking-widest text-black/80">Rua e Número</label>
-                      <input 
-                        required
-                        type="text" 
-                        value={street}
-                        onChange={(e) => setStreet(e.target.value)}
-                        className="w-full bg-white/90 border-0 rounded-xl px-4 py-3.5 focus:outline-none focus:ring-4 focus:ring-black/10 placeholder-black/40 text-black font-bold transition-all shadow-sm"
-                        placeholder="Ex: Rua Roberto Dalanana, 332"
-                      />
-                    </div>
-                    
-                    <div className="col-span-2">
-                      <label className="block text-[10px] font-black uppercase mb-1 tracking-widest text-black/80">Bairro</label>
-                      <input 
-                        required
-                        type="text" 
-                        value={neighborhood}
-                        onChange={(e) => setNeighborhood(e.target.value)}
-                        className="w-full bg-white/90 border-0 rounded-xl px-4 py-3.5 focus:outline-none focus:ring-4 focus:ring-black/10 placeholder-black/40 text-black font-bold transition-all shadow-sm"
-                        placeholder="Ex: Boqueirão"
-                      />
+                      <label className="block text-[10px] font-black uppercase mb-1 tracking-widest text-black/80">Método de Entrega</label>
+                      <select 
+                        value={deliveryMethod}
+                        onChange={(e) => setDeliveryMethod(e.target.value)}
+                        className="w-full bg-white/90 border-0 rounded-xl px-4 py-3.5 focus:outline-none focus:ring-4 focus:ring-black/10 text-black font-bold appearance-none transition-all shadow-sm cursor-pointer"
+                      >
+                        <option value="Delivery">Delivery (Entregar no meu endereço)</option>
+                        <option value="Retirar no local">Retirar no local</option>
+                      </select>
                     </div>
 
-                    <div className="col-span-2">
-                      <label className="block text-[10px] font-black uppercase mb-1 tracking-widest text-black/80">Ponto de Referência (Opcional)</label>
-                      <input 
-                        type="text" 
-                        value={reference}
-                        onChange={(e) => setReference(e.target.value)}
-                        className="w-full bg-white/90 border-0 rounded-xl px-4 py-3.5 focus:outline-none focus:ring-4 focus:ring-black/10 placeholder-black/40 text-black font-bold transition-all shadow-sm"
-                        placeholder="Próximo a..."
-                      />
-                    </div>
+                    {deliveryMethod === 'Delivery' && (
+                      <>
+                        <div className="col-span-2">
+                          <label className="block text-[10px] font-black uppercase mb-1 tracking-widest text-black/80">Rua e Número</label>
+                          <input 
+                            required={deliveryMethod === 'Delivery'}
+                            type="text" 
+                            value={street}
+                            onChange={(e) => setStreet(e.target.value)}
+                            className="w-full bg-white/90 border-0 rounded-xl px-4 py-3.5 focus:outline-none focus:ring-4 focus:ring-black/10 placeholder-black/40 text-black font-bold transition-all shadow-sm"
+                            placeholder="Ex: Rua Roberto Dalanana, 332"
+                          />
+                        </div>
+                        
+                        <div className="col-span-2">
+                          <label className="block text-[10px] font-black uppercase mb-1 tracking-widest text-black/80">Bairro</label>
+                          <input 
+                            required={deliveryMethod === 'Delivery'}
+                            type="text" 
+                            value={neighborhood}
+                            onChange={(e) => setNeighborhood(e.target.value)}
+                            className="w-full bg-white/90 border-0 rounded-xl px-4 py-3.5 focus:outline-none focus:ring-4 focus:ring-black/10 placeholder-black/40 text-black font-bold transition-all shadow-sm"
+                            placeholder="Ex: Boqueirão"
+                          />
+                        </div>
+
+                        <div className="col-span-2">
+                          <label className="block text-[10px] font-black uppercase mb-1 tracking-widest text-black/80">Ponto de Referência (Opcional)</label>
+                          <input 
+                            type="text" 
+                            value={reference}
+                            onChange={(e) => setReference(e.target.value)}
+                            className="w-full bg-white/90 border-0 rounded-xl px-4 py-3.5 focus:outline-none focus:ring-4 focus:ring-black/10 placeholder-black/40 text-black font-bold transition-all shadow-sm"
+                            placeholder="Próximo a..."
+                          />
+                        </div>
+                      </>
+                    )}
                   </div>
 
                   <div>
@@ -239,6 +266,16 @@ export function CartDrawer({ isOpen, onClose, cartItems, onUpdateQuantity, setti
                       )}
                     </div>
                   )}
+
+                  <div className="mt-4">
+                    <label className="block text-[10px] font-black uppercase mb-1 tracking-widest text-black/80">Notas (Retirar grãos, itens do lanche, etc)</label>
+                    <textarea 
+                      value={notes}
+                      onChange={(e) => setNotes(e.target.value)}
+                      className="w-full bg-white/90 border-0 rounded-xl px-4 py-3.5 focus:outline-none focus:ring-4 focus:ring-black/10 placeholder-black/40 text-black font-bold transition-all shadow-sm min-h-[80px]"
+                      placeholder="Ex: Tirar milho e ervilha do dog..."
+                    />
+                  </div>
                 </div>
 
                 <div className="mt-8 pt-6 border-t border-black/10">
