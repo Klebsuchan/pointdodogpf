@@ -1,218 +1,135 @@
-import React, { useState } from 'react';
-import { useStore } from './store';
-import { Header } from './components/Header';
-import { ProductList } from './components/ProductList';
-import { CartDrawer } from './components/CartDrawer';
-import { AdminPanel } from './components/AdminPanel';
-import { PolicyModal } from './components/PolicyModal';
-import { CartItem, Product } from './types';
-import toast, { Toaster } from 'react-hot-toast';
+import React, { useEffect, useState, useRef } from 'react';
+import { motion, useScroll, useTransform } from 'motion/react';
 
-const normalizeText = (text: string) => {
-  if (!text) return '';
-  return text.toLowerCase()
-    .normalize("NFD").replace(/[\u0300-\u036f]/g, "")
-    .replace(/-/g, ' ')
-    .replace(/\s+/g, ' ')
-    .trim();
-};
+const FLAVORS = ['🌭', '🍔'];
 
-export default function App() {
-  const { 
-    products, 
-    categories, 
-    settings, 
-    addProduct, 
-    updateProduct, 
-    deleteProduct, 
-    updateSettings 
-  } = useStore();
+export function HeroSection() {
+  const containerRef = useRef<HTMLDivElement>(null);
+  const { scrollYProgress } = useScroll({
+    target: containerRef,
+    offset: ["start start", "end start"]
+  });
 
-  const [view, setView] = useState<'home' | 'admin'>('home');
-  const [isCartOpen, setIsCartOpen] = useState(false);
-  const [cartItems, setCartItems] = useState<CartItem[]>([]);
-  const [searchQuery, setSearchQuery] = useState('');
-  const [activePolicy, setActivePolicy] = useState<'cookies' | 'privacy' | 'delivery' | null>(null);
+  const y1 = useTransform(scrollYProgress, [0, 1], [0, 150]);
+  
+  const [dimensions, setDimensions] = useState({ width: 1000, height: 800 });
+  const [mounted, setMounted] = useState(false);
 
-  const handleAddToCart = (product: Product) => {
-    setCartItems(prev => {
-      const existing = prev.find(item => item.product.id === product.id);
-      if (existing) {
-        return prev.map(item => 
-          item.product.id === product.id 
-            ? { ...item, quantity: item.quantity + 1 }
-            : item
-        );
-      }
-      return [...prev, { product, quantity: 1 }];
-    });
+  useEffect(() => {
+    setDimensions({ width: window.innerWidth, height: window.innerHeight });
+    setMounted(true);
     
-    // Mostra um toast ao invez de abrir o drawer toda vez
-    toast.success(`${product.name} adicionado ao carrinho!`, {
-      style: {
-        background: '#0A0A0A',
-        color: '#fff',
-        border: '1px solid #1A1A1A',
-        borderRadius: '16px',
-        fontWeight: 'bold',
-      },
-      iconTheme: {
-        primary: '#DC2626',
-        secondary: '#000',
-      },
-    });
-  };
-
-  const handleUpdateQuantity = (productId: string, delta: number) => {
-    setCartItems(prev => {
-      return prev.map(item => {
-        if (item.product.id === productId) {
-          const newQty = item.quantity + delta;
-          return { ...item, quantity: newQty };
-        }
-        return item;
-      }).filter(item => item.quantity > 0);
-    });
-  };
-
-  const totalCartItems = cartItems.reduce((acc, item) => acc + item.quantity, 0);
+    const handleResize = () => {
+      setDimensions({ width: window.innerWidth, height: window.innerHeight });
+    };
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   return (
-    <div className="min-h-screen bg-black text-white font-sans flex flex-col relative">
-      {/* Premium Background Accent */}
-      <div className="fixed inset-0 pointer-events-none z-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-zinc-900/30 via-black to-black mix-blend-screen transition-opacity duration-1000"></div>
-      
-      <div className="relative z-10 flex flex-col min-h-screen">
-        <Header 
-          cartItemCount={totalCartItems} 
-          onOpenCart={() => setIsCartOpen(true)} 
-          onNavigate={setView}
-          searchQuery={searchQuery}
-          onSearchChange={setSearchQuery}
-          showSearch={view === 'home'}
-        />
-
-        <main className="flex-1">
-          {view === 'home' ? (
-            <ProductList 
-              categories={categories} 
-              products={products.filter(p => {
-                const search = normalizeText(searchQuery);
-                if (!search) return true;
-                return normalizeText(p.name).includes(search) || 
-                       normalizeText(p.description || '').includes(search);
-              })} 
-              onAddToCart={handleAddToCart} 
-              searchQuery={searchQuery}
-            />
-          ) : (
-            <AdminPanel 
-              products={products}
-              categories={categories}
-              settings={settings}
-              onAddProduct={addProduct}
-              onUpdateProduct={updateProduct}
-              onDeleteProduct={deleteProduct}
-              onUpdateSettings={updateSettings}
-            />
-          )}
-        </main>
-
-        <CartDrawer 
-          isOpen={isCartOpen}
-          onClose={() => setIsCartOpen(false)}
-          cartItems={cartItems}
-          onUpdateQuantity={handleUpdateQuantity}
-          settings={settings}
-        />
-
-        <footer className="bg-[#050505] pt-16 pb-[calc(4rem+env(safe-area-inset-bottom))] border-t border-zinc-900 mt-auto relative z-20">
-          <div className="max-w-6xl mx-auto px-6 flex flex-col items-center">
-            
-            {/* Branding & Subtitle */}
-            <div className="text-center mb-8">
-              <p className="text-zinc-400 font-extrabold text-lg tracking-widest uppercase mb-2">
-                Point <span className="text-[#DC2626]">Dog</span>
-              </p>
-              <p className="text-zinc-500 text-xs md:text-sm max-w-sm mx-auto">
-                O melhor cachorro-quente de Passo Fundo. Feito com ingredientes selecionados.
-              </p>
-            </div>
-
-            {/* Policies Selection */}
-            <div className="flex flex-wrap items-center justify-center gap-x-6 gap-y-3 mb-8 text-zinc-400 text-xs font-semibold uppercase tracking-wider">
-              <button 
-                onClick={() => setActivePolicy('cookies')} 
-                className="hover:text-[#DC2626] transition-colors cursor-pointer"
-              >
-                Política de Cookies
-              </button>
-              <span className="text-zinc-850 hidden sm:inline">•</span>
-              <button 
-                onClick={() => setActivePolicy('privacy')} 
-                className="hover:text-[#DC2626] transition-colors cursor-pointer"
-              >
-                Política de Privacidade
-              </button>
-              <span className="text-zinc-850 hidden sm:inline">•</span>
-              <button 
-                onClick={() => setActivePolicy('delivery')} 
-                className="hover:text-[#DC2626] transition-colors cursor-pointer"
-              >
-                Política de Delivery
-              </button>
-            </div>
-
-            {/* Divider */}
-            <div className="w-full max-w-lg h-[1px] bg-zinc-900/60 mb-8" />
-
-            {/* Credits and Copyrights */}
-            <div className="flex flex-col md:flex-row items-center justify-between w-full max-w-4xl gap-4 text-center md:text-left text-xs text-zinc-500">
-              <div>
-                <p>© {new Date().getFullYear()} Point Dog Delivery. Todos os direitos reservados.</p>
-                <p className="mt-1 text-zinc-600">
-                  Desenvolvedor{' '}
-                  <a 
-                    href="https://portfolio-braian-three.vercel.app/" 
-                    target="_blank" 
-                    rel="noopener noreferrer" 
-                    className="text-[#DC2626] hover:underline font-bold transition-all duration-200"
-                  >
-                    Braian Kmdc
-                  </a>
-                </p>
-              </div>
-
-              <div>
-                <button 
-                  onClick={() => setView('admin')} 
-                  className="px-4 py-2 bg-zinc-950/80 hover:bg-zinc-900 text-zinc-400 hover:text-[#DC2626] hover:border-zinc-800 transition-all duration-200 uppercase tracking-widest font-extrabold text-[10px] rounded-lg border border-zinc-900/80"
+    <div ref={containerRef} className="relative w-full overflow-hidden min-h-[75vh] flex items-center justify-center bg-[#0a0a0a]">
+      {/* Unique Animated Background */}
+      {mounted && (
+        <div className="absolute inset-0 z-0 overflow-hidden [mask-image:linear-gradient(to_bottom,black_60%,transparent_95%)]">
+          {/* Animated Gradient Blobs */}
+          <motion.div
+            animate={{
+              scale: [1, 1.2, 1],
+              x: [0, 100, 0],
+              y: [0, -50, 0],
+            }}
+            transition={{ duration: 15, repeat: Infinity, ease: "easeInOut" }}
+            className="absolute top-[-10%] left-[-10%] w-[50vw] h-[50vw] rounded-full bg-[#D32F2F]/20 blur-[120px] mix-blend-screen"
+          />
+          <motion.div
+            animate={{
+              scale: [1, 1.5, 1],
+              x: [0, -100, 0],
+              y: [0, 100, 0],
+            }}
+            transition={{ duration: 18, repeat: Infinity, ease: "easeInOut" }}
+            className="absolute bottom-[-10%] right-[-10%] w-[60vw] h-[60vw] rounded-full bg-[#FFD700]/15 blur-[120px] mix-blend-screen"
+          />
+          
+          {/* Abstract Grid Pattern */}
+          <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.02)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.02)_1px,transparent_1px)] bg-[size:4rem_4rem] [mask-image:radial-gradient(ellipse_60%_60%_at_50%_50%,#000_20%,transparent_100%)]"></div>
+          
+          {/* Falling Elements */}
+          <div className="relative w-full max-w-7xl h-full mx-auto">
+            {[...Array(25)].map((_, i) => {
+              const startX = Math.random() * 100; // percentage
+              const duration = 12 + Math.random() * 20;
+              const delay = Math.random() * -25; // negative delay so they start already on screen
+              const size = 30 + Math.random() * 50; // emoji size
+              
+              return (
+                <motion.div
+                  key={i}
+                  initial={{ y: -150, x: `${startX}vw`, rotate: 0, opacity: 0 }}
+                  animate={{ 
+                    y: dimensions.height + 250, 
+                    rotate: 360,
+                    opacity: [0, 0.45, 0.45, 0]
+                  }}
+                  transition={{ 
+                    duration: duration, 
+                    repeat: Infinity, 
+                    ease: "linear",
+                    delay: delay,
+                    opacity: {
+                      duration: duration,
+                      repeat: Infinity,
+                      ease: "easeInOut",
+                      times: [0, 0.2, 0.8, 1]
+                    }
+                  }}
+                  className="absolute select-none pointer-events-none drop-shadow-[0_4px_12px_rgba(0,0,0,0.5)]"
+                  style={{ fontSize: size }}
                 >
-                  Área do Administrador
-                </button>
-              </div>
-            </div>
-
+                  {FLAVORS[i % FLAVORS.length]}
+                </motion.div>
+              );
+            })}
           </div>
-        </footer>
-      </div>
+        </div>
+      )}
 
-      <PolicyModal type={activePolicy} onClose={() => setActivePolicy(null)} />
-
-      {/* Floating WhatsApp Button */}
-      <a
-        href={`https://wa.me/${settings.whatsappNumber}?text=${encodeURIComponent('Olá! Gostaria de tirar uma dúvida.')}`}
-        target="_blank"
-        rel="noopener noreferrer"
-        className="fixed bottom-6 right-6 z-40 bg-[#25D366] text-white p-4 rounded-full shadow-[0_4px_14px_rgba(37,211,102,0.4)] hover:scale-110 hover:shadow-[0_6px_20px_rgba(37,211,102,0.6)] transition-all duration-300 flex items-center justify-center group"
-        title="Falar no WhatsApp"
+      {/* Overlay to ensure text readability */}
+      <div className="absolute inset-0 bg-black/40 z-0 pointer-events-none"></div>
+      
+      {/* Content */}
+      <motion.div 
+        style={{ y: y1 }}
+        className="text-center py-16 md:py-24 px-4 flex flex-col items-center justify-center relative z-10 w-full max-w-4xl mx-auto"
       >
-        <svg viewBox="0 0 24 24" width="28" height="28" fill="currentColor">
-          <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/>
-        </svg>
-      </a>
-
-      <Toaster position="bottom-center" toastOptions={{ duration: 2500 }} />
+        <div className="flex flex-col items-center gap-2 mb-8">
+          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-[#4CAF50]/10 border border-[#4CAF50]/30 text-[#4CAF50] text-xs font-black uppercase tracking-widest backdrop-blur-sm shadow-[0_0_15px_rgba(76,175,80,0.2)]">
+            <span className="w-2 h-2 rounded-full bg-[#4CAF50] animate-pulse shadow-[0_0_8px_rgba(76,175,80,0.8)]"></span>
+            DELIVERY ABERTO
+          </div>
+          <span className="text-[#FFD700] text-xs font-bold uppercase tracking-widest">
+            Atendimento até as 23hs
+          </span>
+        </div>
+        
+        <motion.h1 
+          initial={{ opacity: 0, y: 30 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.8, ease: "easeOut" }}
+          className="text-5xl sm:text-7xl md:text-8xl font-black italic tracking-tighter uppercase text-white mb-6 drop-shadow-[0_4px_20px_rgba(0,0,0,0.5)] leading-[0.9]"
+        >
+          Sabor de <span className="text-[#FFD700] drop-shadow-[0_0_20px_rgba(255,215,0,0.4)]">Verdade</span> <br /> Na Sua Casa
+        </motion.h1>
+        
+        <motion.p 
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 1, delay: 0.3 }}
+          className="text-zinc-300 font-medium max-w-2xl mx-auto text-lg md:text-2xl leading-relaxed tracking-wide mb-10 drop-shadow-lg"
+        >
+          Descubra os melhores <span className="text-[#D32F2F] font-bold">cachorros-quentes e hambúrgueres</span> com entrega rápida. Faça seu pedido e conclua direto pelo WhatsApp!
+        </motion.p>
+      </motion.div>
     </div>
   );
 }

@@ -1,41 +1,129 @@
-{
-  "name": "react-example",
-  "private": true,
-  "version": "0.0.0",
-  "type": "module",
-  "scripts": {
-    "dev": "vite --port=3000 --host=0.0.0.0",
-    "build": "vite build",
-    "preview": "vite preview",
-    "clean": "rm -rf dist server.js",
-    "lint": "tsc --noEmit"
-  },
-  "dependencies": {
-    "@google/genai": "^2.4.0",
-    "@tailwindcss/vite": "^4.1.14",
-    "@vitejs/plugin-react": "^5.0.4",
-    "dotenv": "^17.2.3",
-    "express": "^4.21.2",
-    "firebase": "^12.15.0",
-    "html2canvas": "^1.4.1",
-    "jspdf": "^4.2.1",
-    "lucide-react": "^0.546.0",
-    "motion": "^12.23.24",
-    "react": "^19.0.1",
-    "react-dom": "^19.0.1",
-    "react-hot-toast": "^2.6.0",
-    "vite": "^6.2.3"
-  },
-  "devDependencies": {
-    "@firebase/eslint-plugin-security-rules": "^0.0.2",
-    "@types/express": "^4.17.21",
-    "@types/node": "^22.14.0",
-    "autoprefixer": "^10.4.21",
-    "esbuild": "^0.25.0",
-    "eslint": "^10.5.0",
-    "tailwindcss": "^4.1.14",
-    "tsx": "^4.21.0",
-    "typescript": "~5.8.2",
-    "vite": "^6.2.3"
-  }
-}
+# 🌭 Point Dog Delivery 🚀
+
+> **Point Dog Delivery** é uma plataforma moderna e responsiva de catálogo online e delivery, criada especialmente para o **Point Dog**, localizado em Passo Fundo, Rio Grande do Sul (RS). O projeto conecta um cardápio interativo e dinâmico diretamente ao WhatsApp do estabelecimento, permitindo que os clientes façam pedidos de forma simples e rápida, enquanto os administradores gerenciam produtos e configurações em tempo real através de um painel de controle integrado com o **Google Firebase**.
+
+---
+
+## 📱 Visualização do Projeto
+
+O design foi concebido com uma estética premium (dark mode), destacando tons vibrantes e detalhes minimalistas que remetem a deliciosos cachorros-quentes e hambúrgueres artesanais de qualidade.
+
+-   **Site Principal:** Navegação intuitiva, pesquisa dinâmica por lanches, carrinho interativo e conclusão direta do pedido.
+-   **Painel Admin:** Interface protegida por senha para gerenciamento de estoque, inserção/edição de produtos, alteração de categorias e número de contato do WhatsApp.
+
+---
+
+## ✨ Recursos Principais
+
+-   🛒 **Carrinho de Compras Interativo:** Controle de quantidade em tempo real e cálculo instantâneo do total com efeitos de animação fluidos.
+-   💬 **Integração Direta com WhatsApp:** Geração automática da mensagem de pedido estruturada e envio direto para o WhatsApp do delivery.
+-   🔍 **Filtro e Busca em Tempo Real:** Barra de pesquisa no cabeçalho inteligente para encontrar cachorros-quentes, hambúrgueres ou bebidas instantaneamente.
+-   🔐 **Painel Administrativo Protegido:** Acesso autenticado para gerenciar os produtos (Adicionar, Alterar, Remover) e as configurações da loja.
+-   ⚡ **Sincronização em Tempo Real (Firebase):** Cardápio instantaneamente atualizado para todos os clientes quando o administrador edita um item (utilizando Firestore onSnapshot).
+-   🎨 **Animações Fluidas:** Efeitos visuais e micro-interações de rolagem e flutuação alimentados por `motion` (Framer Motion).
+-   🚀 **SEO Otimizado:** Meta tags e informações focadas em buscas avançadas para a região de Passo Fundo, RS, garantindo alta visibilidade no Google para termos como "cachorro-quente delivery Passo Fundo" e "hambúrguer tele-entrega".
+
+---
+
+## 🛠️ Tecnologias Utilizadas
+
+### 💻 **Frontend & Core**
+-   **React 19 & TypeScript:** Biblioteca declarativa e forte tipagem estática para robustez e agilidade de desenvolvimento.
+-   **Vite:** Bundler de última geração com inicialização ultra-rápida.
+-   **Tailwind CSS (V4):** Estilização ágil através de utilitários de classe modernos para layout responsivo.
+-   **Motion (Framer Motion):** Para animações de flutuação na página principal, transições de gaveta do carrinho e toasts.
+-   **Lucide React:** Coleção rica de ícones consistentes e otimizados para interface do usuário.
+-   **React Hot Toast:** Notificações flutuantes e elegantes de ações do usuário.
+
+### 🗄️ **Infraestrutura & Banco de Dados**
+-   **Google Cloud Firebase (Firestore):** Armazenamento de dados dinâmico e NoSQL estruturado em coleções (`products`, `categories`, `settings`).
+-   **Firebase Auth:** Para autenticação integrada e segurança nas regras de leitura/escrita no banco de dados.
+
+---
+
+## 📁 Estrutura de Diretórios
+
+```bash
+├── src
+│   ├── components           # Componentes Modulares de UI
+│   │   ├── AdminPanel.tsx   # Painel Administrativo de Produtos e Configurações
+│   │   ├── CartDrawer.tsx   # Gaveta Lateral com resumo e fechamento de Pedido
+│   │   ├── Header.tsx       # Barra Superior com Logo, Busca e Carrinho
+│   │   ├── HeroSection.tsx  # Banner de destaque com animações flutuantes
+│   │   └── ProductList.tsx  # Listagem dinâmica de categorias e produtos
+│   ├── types.ts             # Definição das interfaces TypeScript do Domínio
+│   ├── store.ts             # Estado global integrado com o Firestore em tempo real
+│   ├── firebase.ts          # Arquivo de inicialização do SDK Firebase
+│   ├── index.css            # Estilos Globais e importações do Tailwind CSS v4
+│   ├── main.tsx             # Ponto de entrada SPA da Aplicação
+│   └── App.tsx              # Componente Organizador de Telas e Fluxo Geral
+├── public                   # Recursos e imagens públicas estáticas
+├── metadata.json            # Metadados de identificação do Applet pela plataforma
+├── firebase-blueprint.json  # Esquema básico para setup inicial do Firebase
+├── firestore.rules          # Regras de segurança de acesso ao Firestore
+├── package.json             # Dependências e gerenciamento de scripts
+└── tsconfig.json            # Arquivo de configuração de compilação do TypeScript
+```
+
+---
+
+## 🚀 Como Executar o Projeto Localmente
+
+Siga o passo a passo abaixo para rodar e testar o ambiente em sua máquina local:
+
+### 1. Pré-requisitos
+Certifique-se de possuir o **Node.js** instalado na sua máquina (versão recomendada `>= 18.x`).
+
+### 2. Instalação das Dependências
+Abra o terminal no diretório raiz do projeto e execute:
+```bash
+npm install
+```
+
+### 3. Configurar Variáveis de Ambiente
+Crie um arquivo `.env` na raiz do projeto copiando as definições do `.env.example`:
+```bash
+cp .env.example .env
+```
+Preencha a variável opcional `GEMINI_API_KEY` se for utilizar funcionalidades com IA:
+```env
+GEMINI_API_KEY="Sua_Chave_De_Desenvolvedor_Aqui"
+```
+
+### 4. Rodar o Servidor de Desenvolvimento
+Inicie o servidor de desenvolvimento local executando:
+```bash
+npm run dev
+```
+O servidor estará rodando em: `http://localhost:3000`
+
+### 5. Compilação para Produção
+Para compilar e otimizar o projeto para ambiente produtivo de distribuição:
+```bash
+npm run build
+```
+Os arquivos estáticos compilados e minificados serão gerados no diretório `/dist`.
+
+---
+
+## 🔑 Acesso ao Painel Administrativo
+
+Para acessar o painel de edição do cardápio e alterar as configurações da loja:
+1.  Role até a base da página e clique em **Área do Administrador**.
+2.  Insira a senha cadastrada no sistema:
+    ```text
+    pointdodogpf123
+    ```
+3.  Uma vez autenticado, você poderá atualizar produtos existentes, desativar temporariamente itens, modificar preços e gerenciar o telefone que recebe os pedidos via WhatsApp.
+
+---
+
+## 🔒 Regras de Segurança do Banco de Dados
+
+O banco de dados é mantido no **Cloud Firestore**. As regras vigentes no arquivo `firestore.rules` garantem que:
+-   Qualquer usuário final possa **ler** produtos e configurações para visualizar o menu na web de forma pública.
+-   Apenas administradores autenticados possam realizar operações de **escrita**, de forma a manter os dados sempre protegidos contra edições indesejadas.
+
+---
+
+> Desenvolvido com carinho para o **Point Dog** - Passo Fundo, RS 🌭🍔🚀

@@ -1,49 +1,23 @@
-{
-  "entities": {
-    "Product": {
-      "title": "Product",
-      "description": "Store products catalogue",
-      "type": "object",
-      "properties": {
-        "categoryId": { "type": "string" },
-        "name": { "type": "string" },
-        "description": { "type": "string" },
-        "price": { "type": "number" },
-        "imageUrl": { "type": "string" }
-      },
-      "required": ["categoryId", "name", "price"]
-    },
-    "Category": {
-      "title": "Category",
-      "description": "Store categories",
-      "type": "object",
-      "properties": {
-        "name": { "type": "string" }
-      },
-      "required": ["name"]
-    },
-    "StoreSettings": {
-      "title": "Store Settings",
-      "description": "Store settings like whatsappNumber",
-      "type": "object",
-      "properties": {
-        "whatsappNumber": { "type": "string" }
-      },
-      "required": ["whatsappNumber"]
-    }
-  },
-  "firestore": {
-    "/products/{productId}": {
-      "schema": { "$ref": "#/entities/Product" },
-      "description": "Products available in the store"
-    },
-    "/categories/{categoryId}": {
-      "schema": { "$ref": "#/entities/Category" },
-      "description": "Categories for products"
-    },
-    "/settings/{settingId}": {
-      "schema": { "$ref": "#/entities/StoreSettings" },
-      "description": "Global store settings"
-    }
-  }
-}
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes, viewport-fit=cover" />
+    <meta name="theme-color" content="#DC2626" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <title>Point Dog</title>
+    <meta name="description" content="O melhor cachorro-quente e hambúrguer de Passo Fundo, Rio Grande do Sul. Faça seu pedido online no Point Dog com entrega rápida e de qualidade!" />
+    <meta name="keywords" content="Point Dog, Passo Fundo, Rio Grande do Sul, RS, cachorro-quente, hambúrguer, lanches, delivery, tele-entrega, pedir lanche online, fast food, dogão" />
+    <link rel="icon" type="image/jpeg" href="/logo.jpeg" />
+    <link rel="apple-touch-icon" href="/logo.jpeg" />
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  </head>
+  <body class="antialiased overflow-x-hidden selection:bg-[#DC2626] selection:text-white">
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>
+

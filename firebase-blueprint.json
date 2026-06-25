@@ -1,5 +1,49 @@
 {
+  "entities": {
+    "Product": {
+      "title": "Product",
+      "description": "Store products catalogue",
+      "type": "object",
+      "properties": {
+        "categoryId": { "type": "string" },
+        "name": { "type": "string" },
+        "description": { "type": "string" },
+        "price": { "type": "number" },
+        "imageUrl": { "type": "string" }
+      },
+      "required": ["categoryId", "name", "price"]
+    },
+    "Category": {
+      "title": "Category",
+      "description": "Store categories",
+      "type": "object",
+      "properties": {
+        "name": { "type": "string" }
+      },
+      "required": ["name"]
+    },
+    "StoreSettings": {
+      "title": "Store Settings",
+      "description": "Store settings like whatsappNumber",
+      "type": "object",
+      "properties": {
+        "whatsappNumber": { "type": "string" }
+      },
+      "required": ["whatsappNumber"]
+    }
+  },
   "firestore": {
-    "rules": "firestore.rules"
+    "/products/{productId}": {
+      "schema": { "$ref": "#/entities/Product" },
+      "description": "Products available in the store"
+    },
+    "/categories/{categoryId}": {
+      "schema": { "$ref": "#/entities/Category" },
+      "description": "Categories for products"
+    },
+    "/settings/{settingId}": {
+      "schema": { "$ref": "#/entities/StoreSettings" },
+      "description": "Global store settings"
+    }
   }
 }

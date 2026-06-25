@@ -1,214 +1,374 @@
-import React from 'react';
-import { motion, AnimatePresence } from 'motion/react';
-import { X, Shield, Activity, Truck } from 'lucide-react';
+import React, { useState } from 'react';
+import { Product, Category, StoreSettings } from '../types';
+import { Plus, Edit2, Trash2, Save, X, LogIn, FileDown } from 'lucide-react';
+import toast from 'react-hot-toast';
+import html2canvas from 'html2canvas';
+import jsPDF from 'jspdf';
 
-interface PolicyModalProps {
-  type: 'cookies' | 'privacy' | 'delivery' | null;
-  onClose: () => void;
+interface AdminPanelProps {
+  products: Product[];
+  categories: Category[];
+  settings: StoreSettings;
+  onAddProduct: (product: Product) => void;
+  onUpdateProduct: (product: Product) => void;
+  onDeleteProduct: (id: string) => void;
+  onUpdateSettings: (settings: StoreSettings) => void;
 }
 
-export function PolicyModal({ type, onClose }: PolicyModalProps) {
-  if (!type) return null;
+export function AdminPanel({
+  products,
+  categories,
+  settings,
+  onAddProduct,
+  onUpdateProduct,
+  onDeleteProduct,
+  onUpdateSettings
+}: AdminPanelProps) {
+  const [editingProduct, setEditingProduct] = useState<Product | null>(null);
+  const [isAdding, setIsAdding] = useState(false);
+  const [whatsapp, setWhatsapp] = useState(settings.whatsappNumber);
+  const [formData, setFormData] = useState<Partial<Product>>({});
+  
+  const [isAuthenticated, setIsAuthenticated] = useState(() => {
+    return sessionStorage.getItem('admin_auth') === 'true';
+  });
+  const [password, setPassword] = useState('');
+  const [isGeneratingPDF, setIsGeneratingPDF] = useState(false);
 
-  const getContent = () => {
-    switch (type) {
-      case 'cookies':
-        return {
-          icon: <Activity className="w-8 h-8 text-[#DC2626]" />,
-          title: 'Política de Cookies',
-          subtitle: 'Transparência e privacidade na sua navegação',
-          body: (
-            <div className="space-y-4 text-zinc-300 text-sm md:text-base leading-relaxed">
-              <p>
-                Nós da <strong>Point Dog</strong> valorizamos a transparência e a privacidade dos nossos clientes. Esta política explica de forma clara como e por que utilizamos cookies em nossa plataforma.
-              </p>
-              <div className="space-y-2">
-                <h4 className="text-white font-semibold text-base mt-4">1. O que são Cookies?</h4>
-                <p>
-                  Cookies são pequenos arquivos de texto enviados e armazenados no seu dispositivo (computador, celular ou tablet) que servem para memorizar suas preferências e melhorar sua de experiência navegando no site.
-                </p>
-              </div>
-              <div className="space-y-2">
-                <h4 className="text-white font-semibold text-base mt-4">2. Como utilizamos os Cookies?</h4>
-                <p>
-                  Utilizamos apenas os cookies estritamente necessários para o funcionamento correto do nosso site. Eles desempenham as seguintes funções básicas:
-                </p>
-                <ul className="list-disc pl-5 space-y-1 text-zinc-400">
-                  <li><strong>Persistência do Carrinho de Compras:</strong> Memorizar os deliciosos cachorros-quentes e hambúrgueres que você adiciona para que eles não sumam caso você atualize a página.</li>
-                  <li><strong>Sessão Administrativa:</strong> Manter a segurança da identificação de login temporário se você for o administrador atualizando o cardápio.</li>
-                  <li><strong>Preferências de Layout:</strong> Salvar pequenas configurações de interface para garantir maior fluidez e velocidade no carregamento.</li>
-                </ul>
-              </div>
-              <div className="space-y-2">
-                <h4 className="text-white font-semibold text-base mt-4">3. Rastreamento e Publicidade</h4>
-                <p>
-                  <strong>Zero Rastreamento Invasivo:</strong> Não operamos cookies de terceiros para publicidade direcionada, rastreamento comportamental ou venda de dados de estatísticas de navegação. Sua privacidade é absoluta.
-                </p>
-              </div>
-              <div className="space-y-2">
-                <h4 className="text-white font-semibold text-base mt-4">4. Como Gerenciar ou Excluir?</h4>
-                <p>
-                  Se preferir, você pode limpar os cookies e dados locais do nosso site diretamente limpando o histórico do seu navegador ou desativando os cookies nas configurações internas dele. Note que isso poderá redefinir seu carrinho de compras atual.
-                </p>
-              </div>
-            </div>
-          )
-        };
-      case 'privacy':
-        return {
-          icon: <Shield className="w-8 h-8 text-[#DC2626]" />,
-          title: 'Política de Privacidade',
-          subtitle: 'Segurança absoluta com os seus dados pessoais',
-          body: (
-            <div className="space-y-4 text-zinc-300 text-sm md:text-base leading-relaxed">
-              <p>
-                A sua privacidade é uma prioridade na <strong>Point Dog</strong>. Esta Política de Privacidade descreve como tratamos as suas informações ao utilizar o nosso sistema de delivery online em Passo Fundo.
-              </p>
-              <div className="space-y-2">
-                <h4 className="text-white font-semibold text-base mt-4">1. Coleta de Informações Mínimas</h4>
-                <p>
-                  Para concluir o seu pedido com sucesso e enviá-lo via WhatsApp à nossa cozinha, solicitamos apenas dados funcionais indispensáveis:
-                </p>
-                <ul className="list-disc pl-5 space-y-1 text-zinc-400">
-                  <li>Seu Nome completo para correta identificação na entrega.</li>
-                  <li>Endereço Completo de entrega (Rua, Número, Bairro, Ponto de Referência).</li>
-                  <li>Número de Contato / WhatsApp para alinhamentos sobre o pedido.</li>
-                  <li>Forma de Pagamento preferencial.</li>
-                </ul>
-              </div>
-              <div className="space-y-2">
-                <h4 className="text-white font-semibold text-base mt-4">2. Uso e Compartilhamento de Dados</h4>
-                <p>
-                  Nossos dados de pedidos são repassados de forma direta ao nosso contato comercial do WhatsApp. Não comercializamos, não compartilhamos de forma externa e não divulgamos de forma alguma suas informações pessoais a terceiros ou listas de spam.
-                </p>
-              </div>
-              <div className="space-y-2">
-                <h4 className="text-white font-semibold text-base mt-4">3. Base Legal e LGPD</h4>
-                <p>
-                  Suas informações são processadas com base no seu consentimento explícito de compra, respeitando todas as diretrizes da Lei Geral de Proteção de Dados (LGPD - Lei nº 13.709/2018).
-                </p>
-              </div>
-              <div className="space-y-2">
-                <h4 className="text-white font-semibold text-base mt-4">4. Alterações e Contato</h4>
-                <p>
-                  Podemos atualizar esta política de tempos em tempos para acompanhar melhorias em nosso fluxo operacional. Caso reste qualquer dúvida de como tratamos seus dados, faça contato direto conosco via nosso canal de suporte de vendas.
-                </p>
-              </div>
-            </div>
-          )
-        };
-      case 'delivery':
-        return {
-          icon: <Truck className="w-8 h-8 text-[#DC2626]" />,
-          title: 'Política de Delivery',
-          subtitle: 'Prazo, logística e entregas quentinhas',
-          body: (
-            <div className="space-y-4 text-zinc-300 text-sm md:text-base leading-relaxed">
-              <p>
-                Garantimos a melhor logística de Passo Fundo para que o seu cachorro-quente chegue quentinho e delicioso! Veja como atuamos:
-              </p>
-              <div className="space-y-2">
-                <h4 className="text-white font-semibold text-base mt-4">1. Área de Cobertura</h4>
-                <p>
-                  Atendemos a cidade de <strong>Passo Fundo - RS</strong>. Entregamos direto nos principais bairros residenciais e comerciais da nossa região urbana.
-                </p>
-              </div>
-              <div className="space-y-2">
-                <h4 className="text-white font-semibold text-base mt-4">2. Prazos Médios de Entrega</h4>
-                <p>
-                  Nosso compromisso é de máxima eficiência:
-                </p>
-                <ul className="list-disc pl-5 space-y-1 text-zinc-400">
-                  <li><strong>Dias Úteis:</strong> Tempo médio de 30 a 50 minutos.</li>
-                  <li><strong>Finais de Semana e Feriados:</strong> Tempo médio de 45 a 70 minutos (devido ao alto fluxo em nosso local).</li>
-                </ul>
-              </div>
-              <div className="space-y-2">
-                <h4 className="text-white font-semibold text-base mt-4">3. Taxas de Entrega</h4>
-                <p>
-                  As taxas de entrega são calculadas de acordo com as distâncias estabelecidas entre a nossa cozinha operacional e o seu endereço. Os valores exatos serão acordados logo após nosso contato inicial no WhatsApp.
-                </p>
-              </div>
-              <div className="space-y-2">
-                <h4 className="text-white font-semibold text-base mt-4">4. Embalagens Especiais de Proteção</h4>
-                <p>
-                  Sabemos que um bom lanche precisa de cuidado no transporte. Por isso, todos os nossos pedidos são acondicionados em embalagens específicas que mantêm a temperatura e a qualidade até a sua mesa.
-                </p>
-              </div>
-              <div className="space-y-2">
-                <h4 className="text-white font-semibold text-base mt-4">5. Confirmação e Rastreabilidade</h4>
-                <p>
-                  Assim que você encaminha o carrinho selecionado via WhatsApp, nossa equipe confirma o recebimento imediatamente, informa o tempo preciso estimado para o preparo e despacha o motoboy para o seu endereço.
-                </p>
-              </div>
-            </div>
-          )
-        };
+  const handleLogin = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (password === 'pointdodogpf123') {
+      setIsAuthenticated(true);
+      sessionStorage.setItem('admin_auth', 'true');
+      toast.success('Login efetuado com sucesso!');
+    } else {
+      toast.error('Senha incorreta.');
     }
   };
 
-  const content = getContent();
+  const generatePDF = async () => {
+    setIsGeneratingPDF(true);
+    toast.loading('Gerando catálogo em PDF...', { id: 'pdf-toast' });
+    
+    try {
+      const pdf = new jsPDF('p', 'mm', 'a4');
+      let yPos = 20;
+      const pageWidth = pdf.internal.pageSize.getWidth();
+
+      // Title
+      pdf.setFont('helvetica', 'bold');
+      pdf.setFontSize(24);
+      pdf.text('Cardápio Digital', pageWidth / 2, yPos, { align: 'center' });
+      yPos += 15;
+
+      categories.forEach((category) => {
+        const categoryProducts = products.filter(p => p.categoryId === category.id);
+        if (categoryProducts.length === 0) return;
+
+        // Category header
+        pdf.setFont('helvetica', 'bold');
+        pdf.setFontSize(16);
+        pdf.setTextColor(220, 38, 38); // Red color
+        pdf.text(category.name.toUpperCase(), 20, yPos);
+        yPos += 10;
+        
+        pdf.setTextColor(0, 0, 0);
+        pdf.setFont('helvetica', 'normal');
+        pdf.setFontSize(12);
+
+        categoryProducts.forEach(product => {
+          if (yPos > 270) {
+            pdf.addPage();
+            yPos = 20;
+          }
+          
+          pdf.setFont('helvetica', 'bold');
+          pdf.text(product.name, 20, yPos);
+          
+          const priceText = `R$ ${product.price.toFixed(2).replace('.', ',')}`;
+          pdf.text(priceText, pageWidth - 20, yPos, { align: 'right' });
+          
+          if (product.description) {
+            yPos += 5;
+            pdf.setFont('helvetica', 'normal');
+            pdf.setFontSize(10);
+            pdf.setTextColor(100, 100, 100);
+            
+            const splitDesc = pdf.splitTextToSize(product.description, pageWidth - 40);
+            pdf.text(splitDesc, 20, yPos);
+            yPos += (splitDesc.length * 5);
+            pdf.setFontSize(12);
+            pdf.setTextColor(0, 0, 0);
+          }
+          
+          yPos += 8;
+        });
+        yPos += 5;
+      });
+
+      pdf.save('cardapio.pdf');
+      toast.success('PDF gerado com sucesso!', { id: 'pdf-toast' });
+    } catch (error) {
+      console.error(error);
+      toast.error('Erro ao gerar PDF', { id: 'pdf-toast' });
+    } finally {
+      setIsGeneratingPDF(false);
+    }
+  };
+
+  const handleSaveSettings = () => {
+    onUpdateSettings({ ...settings, whatsappNumber: whatsapp });
+    toast.success('Configurações salvas!');
+  };
+
+  const openAdd = () => {
+    setFormData({
+      id: Date.now().toString(),
+      name: '',
+      price: 0,
+      categoryId: categories[0]?.id || '',
+      description: '',
+      imageUrl: ''
+    });
+    setIsAdding(true);
+    setEditingProduct(null);
+  };
+
+  const openEdit = (product: Product) => {
+    setFormData(product);
+    setEditingProduct(product);
+    setIsAdding(false);
+  };
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (isAdding) {
+      onAddProduct(formData as Product);
+      setIsAdding(false);
+      toast.success('Produto adicionado!');
+    } else if (editingProduct) {
+      onUpdateProduct(formData as Product);
+      setEditingProduct(null);
+      toast.success('Produto atualizado!');
+    }
+  };
+
+  if (!isAuthenticated) {
+    return (
+      <div className="max-w-md mx-auto p-4 py-16 flex flex-col items-center justify-center space-y-6">
+        <h2 className="text-3xl font-black text-white italic tracking-tighter uppercase text-center">Acesso Restrito</h2>
+        <p className="text-[#9ca3af] text-center">Digite a senha para acessar o painel administrativo.</p>
+        
+        <form onSubmit={handleLogin} className="w-full space-y-4">
+          <input
+            type="password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            placeholder="Senha secreta"
+            className="w-full bg-[#111111] border border-[#1A1A1A] rounded-xl px-4 py-3.5 focus:outline-none focus:ring-2 focus:ring-[#DC2626]/50 font-mono text-white transition-all shadow-inner text-center"
+          />
+          <button 
+            type="submit"
+            className="w-full bg-[#DC2626] text-white px-8 py-4 rounded-xl font-black flex items-center justify-center gap-3 hover:scale-105 active:scale-95 transition-all shadow-lg uppercase tracking-widest text-sm"
+          >
+            <LogIn size={20} />
+            Entrar
+          </button>
+        </form>
+      </div>
+    );
+  }
 
   return (
-    <AnimatePresence>
-      <div className="fixed inset-0 z-50 flex items-center justify-center p-4 overflow-y-auto">
-        {/* Backdrop overlay */}
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          onClick={onClose}
-          className="fixed inset-0 bg-black/80 backdrop-blur-md cursor-pointer"
-        />
-
-        {/* Modal Contatiner */}
-        <motion.div
-          initial={{ opacity: 0, scale: 0.95, y: 15 }}
-          animate={{ opacity: 1, scale: 1, y: 0 }}
-          exit={{ opacity: 0, scale: 0.95, y: 15 }}
-          transition={{ type: 'spring', damping: 25, stiffness: 350 }}
-          className="relative w-full max-w-2xl bg-[#0C0C0C] border border-zinc-900 rounded-3xl p-6 md:p-8 z-10 shadow-[0_0_50px_rgba(0,0,0,0.8)] max-h-[85vh] flex flex-col"
+    <div className="max-w-4xl mx-auto p-4 py-8 space-y-8 bg-black text-white">
+      <div className="flex items-center justify-between border-b pb-4 border-zinc-900 flex-wrap gap-4">
+        <h2 className="text-3xl font-black text-white italic tracking-tighter uppercase">Painel <span className="text-[#DC2626]">Admin</span></h2>
+        <button
+          onClick={generatePDF}
+          disabled={isGeneratingPDF}
+          className="bg-white/10 hover:bg-white/20 text-white px-4 py-2.5 rounded-xl font-bold transition-all flex items-center gap-2 text-xs uppercase tracking-widest disabled:opacity-50"
         >
-          {/* Close button */}
-          <button
-            onClick={onClose}
-            className="absolute top-6 right-6 text-zinc-500 hover:text-white transition-colors p-1.5 rounded-full hover:bg-zinc-900"
-            aria-label="Fecar modal"
-          >
-            <X className="w-5 h-5" />
-          </button>
-
-          {/* Modal Header */}
-          <div className="flex items-start gap-4 mb-6 border-b border-zinc-900/60 pb-5">
-            <div className="p-3 bg-zinc-950/80 rounded-2xl border border-zinc-900 shadow-inner">
-              {content.icon}
-            </div>
-            <div>
-              <h3 className="text-xl md:text-2xl font-bold text-white tracking-tight leading-none mb-1">
-                {content.title}
-              </h3>
-              <p className="text-zinc-500 text-xs md:text-sm">
-                {content.subtitle}
-              </p>
-            </div>
-          </div>
-
-          {/* Scrollable contents */}
-          <div className="flex-1 overflow-y-auto pr-2 space-y-4 scrollbar-thin scrollbar-thumb-zinc-800 scrollbar-track-transparent">
-            {content.body}
-          </div>
-
-          {/* Footer Action */}
-          <div className="mt-6 pt-4 border-t border-zinc-900/40 flex justify-end">
-            <button
-              onClick={onClose}
-              className="px-6 py-2.5 bg-zinc-900 hover:bg-zinc-850 text-white rounded-xl text-sm font-semibold transition-colors duration-200 border border-zinc-800"
-            >
-              Compreendi e Fechar
-            </button>
-          </div>
-        </motion.div>
+          <FileDown size={16} />
+          {isGeneratingPDF ? 'Gerando...' : 'Gerar Catálogo PDF'}
+        </button>
       </div>
-    </AnimatePresence>
+
+      {/* Settings Section */}
+      <div className="bg-[#0A0A0A] p-6 rounded-3xl border border-[#1A1A1A] shadow-sm">
+        <h3 className="font-bold text-lg mb-4 text-white uppercase tracking-widest text-sm">Configurações</h3>
+        <div className="flex gap-4 items-end flex-wrap md:flex-nowrap">
+          <div className="flex-1 w-full">
+            <label className="block text-xs font-black text-[#DC2626] uppercase mb-2 tracking-widest">WhatsApp (apenas números)</label>
+            <input 
+              type="text" 
+              value={whatsapp}
+              onChange={e => setWhatsapp(e.target.value)}
+              className="w-full bg-[#111111] border-none rounded-xl px-4 py-3.5 focus:outline-none focus:ring-2 focus:ring-[#DC2626]/50 font-mono text-white transition-all shadow-inner"
+              placeholder="Ex: 5511999999999"
+            />
+          </div>
+          <button 
+            onClick={handleSaveSettings}
+            className="w-full md:w-auto bg-[#DC2626] text-white px-6 py-3.5 rounded-xl font-black transition-all flex items-center justify-center gap-2 hover:scale-105 active:scale-95 shadow-lg uppercase tracking-widest text-xs"
+          >
+            <Save size={18} />
+            Salvar
+          </button>
+        </div>
+      </div>
+
+      {/* Products Management */}
+      <div className="bg-[#0A0A0A] p-6 rounded-3xl border border-[#1A1A1A] shadow-sm">
+        <div className="flex justify-between items-center mb-6">
+          <h3 className="font-bold text-lg text-white uppercase tracking-widest text-sm">Cardápio</h3>
+          <button 
+            onClick={openAdd}
+            className="bg-[#111111] hover:bg-[#151515] text-[#DC2626] px-4 py-2.5 rounded-xl font-bold transition-all flex items-center gap-2 border border-[#DC2626]/20 hover:border-[#DC2626]/40 text-xs uppercase tracking-widest"
+          >
+            <Plus size={16} />
+            Novo
+          </button>
+        </div>
+
+        {/* Form Modal */}
+        {(isAdding || editingProduct) && (
+          <div className="mb-8 bg-[#111111] p-6 rounded-2xl border border-[#DC2626]/20 shadow-inner">
+            <div className="flex justify-between items-center mb-6 border-b border-[#1A1A1A] pb-4">
+              <h4 className="font-black text-lg text-[#DC2626] uppercase tracking-widest flex items-center gap-2">
+                {isAdding ? <><Plus size={20}/> Adicionar</> : <><Edit2 size={20}/> Editar</>}
+              </h4>
+              <button onClick={() => { setIsAdding(false); setEditingProduct(null); }} className="p-2 hover:bg-black rounded-lg text-zinc-400 border border-transparent hover:border-[#1A1A1A]">
+                <X size={20} />
+              </button>
+            </div>
+            
+            <form onSubmit={handleSubmit} className="space-y-5">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                <div>
+                  <label className="block text-xs font-black text-[#9ca3af] uppercase mb-2 tracking-widest">Nome do Produto</label>
+                  <input 
+                    required
+                    type="text" 
+                    value={formData.name || ''}
+                    onChange={e => setFormData({...formData, name: e.target.value})}
+                    className="w-full bg-[#050505] border border-[#1A1A1A] rounded-xl px-4 py-3.5 text-white focus:outline-none focus:ring-2 focus:ring-[#DC2626]/50 transition-all font-bold"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-black text-[#9ca3af] uppercase mb-2 tracking-widest">Preço (R$)</label>
+                  <input 
+                    required
+                    type="number" 
+                    step="0.01"
+                    value={formData.price || ''}
+                    onChange={e => setFormData({...formData, price: parseFloat(e.target.value)})}
+                    className="w-full bg-[#050505] border border-[#1A1A1A] rounded-xl px-4 py-3.5 text-white focus:outline-none focus:ring-2 focus:ring-[#DC2626]/50 transition-all font-black text-[#DC2626]"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-black text-[#9ca3af] uppercase mb-2 tracking-widest">Categoria</label>
+                  <select 
+                    required
+                    value={formData.categoryId || ''}
+                    onChange={e => setFormData({...formData, categoryId: e.target.value})}
+                    className="w-full bg-[#050505] border border-[#1A1A1A] rounded-xl px-4 py-3.5 text-white focus:outline-none focus:ring-2 focus:ring-[#DC2626]/50 transition-all font-bold"
+                  >
+                    {categories.map(c => (
+                      <option key={c.id} value={c.id}>{c.name}</option>
+                    ))}
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-xs font-black text-[#9ca3af] uppercase mb-2 tracking-widest">URL da Imagem</label>
+                  <input 
+                    type="url" 
+                    value={formData.imageUrl || ''}
+                    onChange={e => setFormData({...formData, imageUrl: e.target.value})}
+                    placeholder="https://..."
+                    className="w-full bg-[#050505] border border-[#1A1A1A] rounded-xl px-4 py-3.5 text-white focus:outline-none focus:ring-2 focus:ring-[#DC2626]/50 transition-all"
+                  />
+                </div>
+                <div className="md:col-span-2">
+                  <label className="block text-xs font-black text-[#9ca3af] uppercase mb-2 tracking-widest">Descrição detalhada</label>
+                  <textarea 
+                    value={formData.description || ''}
+                    onChange={e => setFormData({...formData, description: e.target.value})}
+                    className="w-full bg-[#050505] border border-[#1A1A1A] rounded-xl px-4 py-3.5 text-white focus:outline-none focus:ring-2 focus:ring-[#DC2626]/50 transition-all resize-none h-24"
+                  />
+                </div>
+              </div>
+              <div className="flex justify-end pt-4 border-t border-[#1A1A1A]">
+                <button type="submit" className="bg-[#DC2626] text-white px-8 py-3.5 rounded-xl font-black flex items-center gap-2 hover:scale-105 active:scale-95 transition-all uppercase tracking-widest text-sm shadow-[0_0_15px_rgba(220,38,38,0.3)]">
+                  <Save size={18} />
+                  {isAdding ? 'Salvar Novo' : 'Salvar Alterações'}
+                </button>
+              </div>
+            </form>
+          </div>
+        )}
+
+        <div className="overflow-x-auto">
+          <table className="w-full text-left border-collapse">
+            <thead>
+              <tr className="border-b border-[#1A1A1A] text-[#6b7280] text-xs uppercase tracking-widest">
+                <th className="pb-4 px-3 font-black bg-transparent">Produto</th>
+                <th className="pb-4 px-3 font-black bg-transparent">Categoria</th>
+                <th className="pb-4 px-3 font-black bg-transparent">Preço</th>
+                <th className="pb-4 px-3 font-black bg-transparent text-right">Ações</th>
+              </tr>
+            </thead>
+            <tbody>
+              {products.map(product => {
+                const category = categories.find(c => c.id === product.categoryId);
+                return (
+                  <tr key={product.id} className="border-b border-[#1A1A1A] hover:bg-[#111111] transition-colors group">
+                    <td className="py-4 px-3 font-bold text-white">
+                      <div className="flex items-center gap-4">
+                        {product.imageUrl ? (
+                          <img src={product.imageUrl} alt={product.name} className="w-12 h-12 rounded-xl object-cover border border-[#1A1A1A]" />
+                        ) : (
+                          <div className="w-12 h-12 bg-[#050505] border border-[#1A1A1A] rounded-xl shrink-0 flex items-center justify-center text-xl">🌭</div>
+                        )}
+                        <span className="line-clamp-1 group-hover:text-[#DC2626] transition-colors">{product.name}</span>
+                      </div>
+                    </td>
+                    <td className="py-4 px-3 text-[#9ca3af] text-sm font-medium">{category?.name || '-'}</td>
+                    <td className="py-4 px-3 font-black text-[#DC2626]">R$ {product.price.toFixed(2).replace('.', ',')}</td>
+                    <td className="py-4 px-3">
+                      <div className="flex items-center justify-end gap-2 opacity-100 md:opacity-0 group-hover:opacity-100 transition-opacity">
+                        <button 
+                          onClick={() => openEdit(product)}
+                          className="p-2 text-[#9ca3af] hover:text-[#DC2626] hover:bg-black rounded-lg transition-all"
+                          title="Editar"
+                        >
+                          <Edit2 size={18} />
+                        </button>
+                        <button 
+                          onClick={() => {
+                            if (confirm(`Deseja realmente excluir "${product.name}"?`)) {
+                              onDeleteProduct(product.id);
+                              toast.success('Produto excluído.');
+                            }
+                          }}
+                          className="p-2 text-red-500 hover:text-white hover:bg-red-500/20 rounded-lg transition-all"
+                          title="Excluir"
+                        >
+                          <Trash2 size={18} />
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+          {products.length === 0 && (
+            <div className="text-center py-12 text-[#6b7280] font-medium">
+              Nenhum produto cadastrado ainda.
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
   );
 }

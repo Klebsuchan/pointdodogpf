@@ -1,8 +1,10 @@
-import firebaseRulesPlugin from '@firebase/eslint-plugin-security-rules';
-
-export default [
-  {
-    ignores: ['dist/**/*', 'node_modules/**/*']
-  },
-  firebaseRulesPlugin.configs['flat/recommended']
-];
+{
+  "projectId": "gen-lang-client-0312540102",
+  "appId": "1:337794963827:web:8af0e872e448f042960d06",
+  "apiKey": "AIzaSyApbPuhy4zVasFJFfB2L0FmxtZwRpZGosg",
+  "authDomain": "gen-lang-client-0312540102.firebaseapp.com",
+  "firestoreDatabaseId": "ai-studio-39dfdd21-e0ad-438f-9887-9518f8bf7e6e",
+  "storageBucket": "gen-lang-client-0312540102.firebasestorage.app",
+  "messagingSenderId": "337794963827",
+  "measurementId": ""
+}
