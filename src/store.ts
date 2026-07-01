@@ -43,53 +43,6 @@ export function useStore() {
   const [settings, setSettings] = useState<StoreSettings>(INITIAL_SETTINGS);
 
   useEffect(() => {
-    const seedInitialData = async () => {
-      try {
-        await setDoc(doc(db, 'settings', 'main'), { whatsappNumber: '555493006238' }, { merge: true });
-      } catch (e) {
-        handleFirestoreError(e, OperationType.WRITE, 'settings/main');
-      }
-      const isSeeded = localStorage.getItem('pointdog_seeded_v4');
-      if (!isSeeded) {
-        try {
-          // Clear existing collections
-          const catDocs = await getDocs(collection(db, 'categories'));
-          const prodDocs = await getDocs(collection(db, 'products'));
-          
-          let deleteBatch = writeBatch(db);
-          let deleteCount = 0;
-          
-          catDocs.forEach(d => {
-            deleteBatch.delete(d.ref);
-            deleteCount++;
-          });
-          prodDocs.forEach(d => {
-            deleteBatch.delete(d.ref);
-            deleteCount++;
-          });
-          
-          if (deleteCount > 0) {
-            await deleteBatch.commit();
-          }
-
-          // Seed new data
-          const batch = writeBatch(db);
-          INITIAL_CATEGORIES.forEach(cat => {
-            batch.set(doc(collection(db, 'categories'), cat.id), cat);
-          });
-          INITIAL_PRODUCTS.forEach(prod => {
-            batch.set(doc(collection(db, 'products'), prod.id), prod);
-          });
-          batch.set(doc(db, 'settings', 'main'), INITIAL_SETTINGS);
-          await batch.commit();
-          localStorage.setItem('pointdog_seeded_v4', 'true');
-        } catch (error) {
-          handleFirestoreError(error, OperationType.WRITE, 'batch/seed');
-        }
-      }
-    };
-    seedInitialData();
-
     const unsubProducts = onSnapshot(collection(db, 'products'), (snapshot) => {
       const fetchedProducts: Product[] = [];
       snapshot.forEach(doc => {

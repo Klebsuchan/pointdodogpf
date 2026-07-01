@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useStore } from './store';
 import { Header } from './components/Header';
 import { ProductList } from './components/ProductList';
@@ -7,6 +7,8 @@ import { AdminPanel } from './components/AdminPanel';
 import { PolicyModal } from './components/PolicyModal';
 import { CartItem, Product } from './types';
 import toast, { Toaster } from 'react-hot-toast';
+import { onAuthStateChanged, signInWithPopup, GoogleAuthProvider, signOut, User } from 'firebase/auth';
+import { auth } from './firebase';
 
 const normalizeText = (text: string) => {
   if (!text) return '';
@@ -33,6 +35,44 @@ export default function App() {
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [activePolicy, setActivePolicy] = useState<'cookies' | 'privacy' | 'delivery' | null>(null);
+
+  const [user, setUser] = useState<User | null>(null);
+
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
+      setUser(currentUser);
+    });
+    return () => unsubscribe();
+  }, []);
+
+  const handleGoogleLogin = async () => {
+    const provider = new GoogleAuthProvider();
+    try {
+      await signInWithPopup(auth, provider);
+      toast.success('Login efetuado com sucesso!', {
+        style: {
+          background: '#0A0A0A',
+          color: '#fff',
+          border: '1px solid #1A1A1A',
+          borderRadius: '16px',
+          fontWeight: 'bold',
+        },
+      });
+    } catch (error: any) {
+      console.error(error);
+      toast.error('Erro ao fazer login com Google: ' + error.message);
+    }
+  };
+
+  const handleLogout = async () => {
+    try {
+      await signOut(auth);
+      toast.success('Sessão encerrada com sucesso!');
+    } catch (error: any) {
+      console.error(error);
+      toast.error('Erro ao sair: ' + error.message);
+    }
+  };
 
   const handleAddToCart = (product: Product) => {
     setCartItems(prev => {
@@ -90,6 +130,9 @@ export default function App() {
           searchQuery={searchQuery}
           onSearchChange={setSearchQuery}
           showSearch={view === 'home'}
+          user={user}
+          onLogin={handleGoogleLogin}
+          onLogout={handleLogout}
         />
 
         <main className="flex-1">
@@ -114,6 +157,8 @@ export default function App() {
               onUpdateProduct={updateProduct}
               onDeleteProduct={deleteProduct}
               onUpdateSettings={updateSettings}
+              user={user}
+              onGoogleLogin={handleGoogleLogin}
             />
           )}
         </main>
@@ -124,6 +169,8 @@ export default function App() {
           cartItems={cartItems}
           onUpdateQuantity={handleUpdateQuantity}
           settings={settings}
+          user={user}
+          onReorder={setCartItems}
         />
 
         <footer className="bg-[#050505] pt-16 pb-[calc(4rem+env(safe-area-inset-bottom))] border-t border-zinc-900 mt-auto relative z-20">

@@ -7,7 +7,13 @@ service cloud.firestore {
     }
 
     function isSignedIn() {
-      return true; // request.auth != null; // Disabled for testing without login
+      return request.auth != null;
+    }
+
+    function isAdmin() {
+      return isSignedIn() && 
+             request.auth.token.email_verified == true && 
+             request.auth.token.email == 'braian.kleber.camargo@gmail.com';
     }
 
     function existing() { return resource.data; }
@@ -44,29 +50,25 @@ service cloud.firestore {
 
     match /products/{productId} {
       allow read: if true;
-      allow create: if isSignedIn() && isValidId(productId) && isValidProduct(incoming());
-      allow update: if isSignedIn() && isValidId(productId) && isValidProduct(incoming()) && (
-        incoming().diff(existing()).affectedKeys().hasOnly(['categoryId', 'name', 'price', 'description', 'imageUrl'])
-      );
-      allow delete: if isSignedIn() && isValidId(productId);
+      allow write: if isAdmin();
     }
 
     match /categories/{categoryId} {
       allow read: if true;
-      allow create: if isSignedIn() && isValidId(categoryId) && isValidCategory(incoming());
-      allow update: if isSignedIn() && isValidId(categoryId) && isValidCategory(incoming()) && (
-        incoming().diff(existing()).affectedKeys().hasOnly(['name'])
-      );
-      allow delete: if isSignedIn() && isValidId(categoryId);
+      allow write: if isAdmin();
     }
 
     match /settings/{settingId} {
       allow read: if true;
-      allow create: if isSignedIn() && isValidId(settingId) && isValidStoreSettings(incoming());
-      allow update: if isSignedIn() && isValidId(settingId) && isValidStoreSettings(incoming()) && (
-        incoming().diff(existing()).affectedKeys().hasOnly(['whatsappNumber'])
-      );
-      allow delete: if isSignedIn() && isValidId(settingId);
+      allow write: if isAdmin();
+    }
+
+    match /users/{userId} {
+      allow read, write: if true;
+    }
+
+    match /orders/{orderId} {
+      allow read, write: if true;
     }
   }
 }

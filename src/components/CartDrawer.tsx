@@ -1,6 +1,10 @@
-import React, { useState } from 'react';
-import { X, Plus, Minus, Send, Trash2 } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { X, Plus, Minus, Send, Trash2, Clock, RotateCcw, ChevronDown, ChevronUp } from 'lucide-react';
 import { CartItem, StoreSettings } from '../types';
+import { User } from 'firebase/auth';
+import { getDoc, doc, setDoc, addDoc, collection, query, where, getDocs } from 'firebase/firestore';
+import { db } from '../firebase';
+import toast from 'react-hot-toast';
 
 interface CartDrawerProps {
   isOpen: boolean;
@@ -8,9 +12,11 @@ interface CartDrawerProps {
   cartItems: CartItem[];
   onUpdateQuantity: (productId: string, delta: number) => void;
   settings: StoreSettings;
+  user: User | null;
+  onReorder?: (items: CartItem[]) => void;
 }
 
-export function CartDrawer({ isOpen, onClose, cartItems, onUpdateQuantity, settings }: CartDrawerProps) {
+export function CartDrawer({ isOpen, onClose, cartItems, onUpdateQuantity, settings, user, onReorder }: CartDrawerProps) {
   const [name, setName] = useState('');
   const [phone, setPhone] = useState('');
   const [street, setStreet] = useState('');
@@ -22,9 +28,99 @@ export function CartDrawer({ isOpen, onClose, cartItems, onUpdateQuantity, setti
   const [needsChange, setNeedsChange] = useState(false);
   const [changeFor, setChangeFor] = useState('');
 
+  const [orders, setOrders] = useState<any[]>([]);
+  const [loadingOrders, setLoadingOrders] = useState(false);
+  const [isHistoryOpen, setIsHistoryOpen] = useState(false);
+
+  // Load user profile info when user is available
+  useEffect(() => {
+    if (user) {
+      const fetchUserInfo = async () => {
+        try {
+          const userDocRef = doc(db, 'users', user.uid);
+          const userDoc = await getDoc(userDocRef);
+          if (userDoc.exists()) {
+            const data = userDoc.data();
+            if (data.name) setName(data.name);
+            if (data.phone) setPhone(data.phone);
+            if (data.street) setStreet(data.street);
+            if (data.neighborhood) setNeighborhood(data.neighborhood);
+            if (data.reference) setReference(data.reference);
+            if (data.deliveryMethod) setDeliveryMethod(data.deliveryMethod);
+            if (data.payment) setPayment(data.payment);
+            if (data.needsChange !== undefined) setNeedsChange(data.needsChange);
+            if (data.changeFor) setChangeFor(data.changeFor);
+            if (data.notes) setNotes(data.notes);
+          } else {
+            if (user.displayName) {
+              setName(user.displayName);
+            }
+          }
+        } catch (error) {
+          console.error("Erro ao carregar dados do usuário: ", error);
+        }
+      };
+      fetchUserInfo();
+    }
+  }, [user]);
+
+  const fetchUserOrders = async () => {
+    if (!user) return;
+    setLoadingOrders(true);
+    try {
+      const q = query(
+        collection(db, 'orders'),
+        where('userId', '==', user.uid)
+      );
+      const querySnapshot = await getDocs(q);
+      const ordersList: any[] = [];
+      querySnapshot.forEach((doc) => {
+        ordersList.push({ id: doc.id, ...doc.data() });
+      });
+      // Sort client-side by createdAt descending to avoid composite index requirement
+      ordersList.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+      setOrders(ordersList);
+    } catch (error) {
+      console.error("Erro ao carregar pedidos anteriores: ", error);
+    } finally {
+      setLoadingOrders(false);
+    }
+  };
+
+  useEffect(() => {
+    if (user && isOpen) {
+      fetchUserOrders();
+    }
+  }, [user, isOpen]);
+
+  const handleReorder = (order: any) => {
+    if (!onReorder) return;
+    
+    const reconstructedCartItems: CartItem[] = order.items.map((item: any) => ({
+      product: {
+        id: item.productId,
+        name: item.productName,
+        price: item.price,
+        categoryId: '',
+      },
+      quantity: item.quantity
+    }));
+
+    onReorder(reconstructedCartItems);
+    toast.success('Itens do pedido anterior adicionados ao carrinho!', {
+      style: {
+        background: '#0A0A0A',
+        color: '#fff',
+        border: '1px solid #1A1A1A',
+        borderRadius: '16px',
+        fontWeight: 'bold',
+      },
+    });
+  };
+
   const total = cartItems.reduce((acc, item) => acc + (item.product.price * item.quantity), 0);
 
-  const handleCheckout = (e: React.FormEvent) => {
+  const handleCheckout = async (e: React.FormEvent) => {
     e.preventDefault();
     
     if (cartItems.length === 0) return;
@@ -60,6 +156,58 @@ export function CartDrawer({ isOpen, onClose, cartItems, onUpdateQuantity, setti
     message += `\n*Total:* R$ ${total.toFixed(2).replace('.', ',')} + taxa de entrega\n`;
     message += `_(A taxa de entrega será combinada com o entregador)_`;
 
+    // Save user checkout profile and order in Firestore if logged in
+    if (user) {
+      try {
+        // Save profile
+        const userDocRef = doc(db, 'users', user.uid);
+        await setDoc(userDocRef, {
+          name,
+          phone,
+          street,
+          neighborhood,
+          reference,
+          deliveryMethod,
+          payment,
+          needsChange,
+          changeFor,
+          notes,
+          updatedAt: new Date().toISOString()
+        }, { merge: true });
+
+        // Save order
+        const orderData = {
+          userId: user.uid,
+          userEmail: user.email,
+          userName: name,
+          userPhone: phone,
+          items: cartItems.map(item => ({
+            productId: item.product.id,
+            productName: item.product.name,
+            price: item.product.price,
+            quantity: item.quantity,
+          })),
+          total: total,
+          deliveryMethod: deliveryMethod,
+          street: deliveryMethod === 'Delivery' ? street : '',
+          neighborhood: deliveryMethod === 'Delivery' ? neighborhood : '',
+          reference: deliveryMethod === 'Delivery' ? reference : '',
+          payment: payment,
+          needsChange: payment === 'Dinheiro' ? needsChange : false,
+          changeFor: (payment === 'Dinheiro' && needsChange) ? changeFor : '',
+          notes: notes,
+          createdAt: new Date().toISOString(),
+          status: 'Pendente'
+        };
+
+        await addDoc(collection(db, 'orders'), orderData);
+        // Refresh orders list
+        fetchUserOrders();
+      } catch (error) {
+        console.error("Erro ao salvar dados do pedido no Firestore: ", error);
+      }
+    }
+
     const encodedMessage = encodeURIComponent(message);
     const waUrl = `https://wa.me/${settings.whatsappNumber}?text=${encodedMessage}`;
     
@@ -87,7 +235,7 @@ export function CartDrawer({ isOpen, onClose, cartItems, onUpdateQuantity, setti
 
         <div className="flex-1 overflow-y-auto p-4 flex flex-col gap-6 bg-[#1A1A1A] custom-scroll">
           {cartItems.length === 0 ? (
-            <div className="flex-1 flex items-center justify-center text-zinc-500 flex-col gap-4">
+            <div className="flex-1 flex items-center justify-center text-zinc-500 flex-col gap-4 py-8">
               <ShoppingBagIcon className="w-16 h-16 opacity-50" />
               <p className="font-medium">Seu carrinho está vazio.</p>
             </div>
@@ -119,6 +267,76 @@ export function CartDrawer({ isOpen, onClose, cartItems, onUpdateQuantity, setti
                   </div>
                 </div>
               ))}
+            </div>
+          )}
+
+          {/* Past Orders History Section */}
+          {user && (
+            <div className="mt-2 border-t border-zinc-800/80 pt-4 pb-2 shrink-0">
+              <button 
+                type="button"
+                onClick={() => setIsHistoryOpen(!isHistoryOpen)}
+                className="w-full flex items-center justify-between text-xs font-black text-zinc-400 uppercase tracking-widest hover:text-[#FFD700] transition-colors py-1 cursor-pointer"
+              >
+                <span className="flex items-center gap-2">
+                  <Clock size={14} className="text-[#FFD700]" />
+                  Meus Últimos Pedidos ({orders.length})
+                </span>
+                {isHistoryOpen ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
+              </button>
+
+              {isHistoryOpen && (
+                <div className="mt-3 space-y-3">
+                  {loadingOrders ? (
+                    <p className="text-zinc-500 text-xs italic">Carregando histórico...</p>
+                  ) : orders.length === 0 ? (
+                    <p className="text-zinc-500 text-xs italic">Nenhum pedido anterior encontrado.</p>
+                  ) : (
+                    orders.map((order) => (
+                      <div key={order.id} className="bg-[#111111] border border-zinc-900 rounded-2xl p-3.5 space-y-2 text-zinc-300">
+                        <div className="flex justify-between items-center border-b border-zinc-900 pb-2">
+                          <span className="text-zinc-500 font-bold text-[10px]">
+                            {new Date(order.createdAt).toLocaleDateString('pt-BR', {
+                              day: '2-digit',
+                              month: '2-digit',
+                              year: 'numeric',
+                              hour: '2-digit',
+                              minute: '2-digit'
+                            })}
+                          </span>
+                          <span className="font-black text-[#FFD700]">
+                            R$ {order.total.toFixed(2).replace('.', ',')}
+                          </span>
+                        </div>
+                        
+                        <div className="space-y-1 text-xs">
+                          {order.items?.map((item: any, idx: number) => (
+                            <div key={idx} className="flex justify-between font-medium">
+                              <span>{item.quantity}x {item.productName}</span>
+                              <span className="text-zinc-500">R$ {(item.price * item.quantity).toFixed(2).replace('.', ',')}</span>
+                            </div>
+                          ))}
+                        </div>
+
+                        {order.notes && (
+                          <div className="bg-[#181818] px-2 py-1.5 rounded-lg border border-zinc-800 text-[10px] text-zinc-400 italic">
+                            Obs: {order.notes}
+                          </div>
+                        )}
+
+                        <button
+                          type="button"
+                          onClick={() => handleReorder(order)}
+                          className="w-full mt-2 flex items-center justify-center gap-2 py-2 bg-[#1C1C1C] hover:bg-[#FFD700] hover:text-[#1A1A1A] text-white rounded-xl font-black uppercase tracking-wider text-[10px] transition-all cursor-pointer"
+                        >
+                          <RotateCcw size={12} />
+                          Repetir este Pedido
+                        </button>
+                      </div>
+                    ))
+                  )}
+                </div>
+              )}
             </div>
           )}
 

@@ -30,6 +30,58 @@
         "whatsappNumber": { "type": "string" }
       },
       "required": ["whatsappNumber"]
+    },
+    "UserCheckoutInfo": {
+      "title": "User Checkout Info",
+      "description": "User checkout profile details",
+      "type": "object",
+      "properties": {
+        "name": { "type": "string" },
+        "phone": { "type": "string" },
+        "street": { "type": "string" },
+        "neighborhood": { "type": "string" },
+        "reference": { "type": "string" },
+        "deliveryMethod": { "type": "string" },
+        "payment": { "type": "string" },
+        "needsChange": { "type": "boolean" },
+        "changeFor": { "type": "string" },
+        "notes": { "type": "string" }
+      }
+    },
+    "Order": {
+      "title": "Order",
+      "description": "Customer orders history record",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string" },
+        "userEmail": { "type": "string" },
+        "userName": { "type": "string" },
+        "userPhone": { "type": "string" },
+        "items": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "productId": { "type": "string" },
+              "productName": { "type": "string" },
+              "price": { "type": "number" },
+              "quantity": { "type": "number" }
+            }
+          }
+        },
+        "total": { "type": "number" },
+        "deliveryMethod": { "type": "string" },
+        "street": { "type": "string" },
+        "neighborhood": { "type": "string" },
+        "reference": { "type": "string" },
+        "payment": { "type": "string" },
+        "needsChange": { "type": "boolean" },
+        "changeFor": { "type": "string" },
+        "notes": { "type": "string" },
+        "createdAt": { "type": "string" },
+        "status": { "type": "string" }
+      },
+      "required": ["userId", "userName", "items", "total", "createdAt"]
     }
   },
   "firestore": {
@@ -44,6 +96,14 @@
     "/settings/{settingId}": {
       "schema": { "$ref": "#/entities/StoreSettings" },
       "description": "Global store settings"
+    },
+    "/users/{userId}": {
+      "schema": { "$ref": "#/entities/UserCheckoutInfo" },
+      "description": "User specific delivery details"
+    },
+    "/orders/{orderId}": {
+      "schema": { "$ref": "#/entities/Order" },
+      "description": "Customer order records"
     }
   }
 }
